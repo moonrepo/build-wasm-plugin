@@ -1,0 +1,16 @@
+name: 'Build proto plugin'
+author: 'Miles Johnson'
+description: 'Build, optimize, and prepare a proto WASM plugin for release.'
+inputs:
+  auto-install:
+    default: false
+    description: 'Auto-install tools on setup.'
+outputs:
+  cache-key:
+    description: 'The cache key used for the toolchain folder (~/.proto).'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+branding:
+  icon: 'battery-charging'
+  color: 'purple'
