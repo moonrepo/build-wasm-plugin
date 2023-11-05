@@ -58,6 +58,10 @@ async function installWabt() {
 	core.addPath(path.join(extractedDir, `wabt-${WABT_VERSION}/bin`));
 }
 
+function getRoot(): string {
+	return process.env.GITHUB_WORKSPACE!;
+}
+
 async function findBuildablePackages() {
 	core.info('Finding buildable packages in Cargo workspace');
 
@@ -86,7 +90,11 @@ async function findBuildablePackages() {
 	).stdout;
 
 	const builds: BuildInfo[] = [];
-	const metadata = JSON.parse(output.trim()) as Metadata;
+	const metadata = JSON.parse(output) as Metadata;
+
+	const rootManifest = TOML.parse(
+		await fs.promises.readFile(path.join(getRoot(), 'Cargo.toml'), 'utf8'),
+	) as Manifest;
 
 	metadata.packages.forEach((pkg) => {
 		if (!metadata.workspace_members.includes(pkg.id)) {
@@ -109,7 +117,10 @@ async function findBuildablePackages() {
 				core.info(`Has cdylib lib target, adding build`);
 
 				builds.push({
-					optLevel: manifest.profile?.release?.['opt-level'] ?? 's',
+					optLevel:
+						manifest.profile?.release?.['opt-level'] ??
+						rootManifest.profile?.release?.['opt-level'] ??
+						's',
 					packageName: pkg.name,
 					targetName: target.name,
 				});
@@ -133,8 +144,7 @@ async function hashFile(filePath: string): Promise<string> {
 async function buildPackages(builds: BuildInfo[]) {
 	core.info(`Building packages: ${builds.map((build) => build.packageName).join(', ')}`);
 
-	const root = process.env.GITHUB_WORKSPACE!;
-	const buildDir = path.join(root, 'builds');
+	const buildDir = path.join(getRoot(), 'builds');
 
 	await fs.promises.mkdir(buildDir);
 
@@ -151,7 +161,7 @@ async function buildPackages(builds: BuildInfo[]) {
 		core.info(`Optimizing ${build.packageName} (level=${build.optLevel})`);
 
 		const fileName = `${build.targetName}.wasm`;
-		const inputFile = path.join(root, 'target/wasm32-wasi/release', fileName);
+		const inputFile = path.join(getRoot(), 'target/wasm32-wasi/release', fileName);
 		const outputFile = path.join(buildDir, fileName);
 
 		core.debug(`Input: ${inputFile}`);
@@ -175,14 +185,11 @@ async function buildPackages(builds: BuildInfo[]) {
 
 async function run() {
 	try {
-		await Promise.all([installWabt(), installBinaryen()]);
-
 		const builds = await findBuildablePackages();
 
 		if (builds.length > 0) {
+			await Promise.all([installWabt(), installBinaryen()]);
 			await buildPackages(builds);
-		} else {
-			core.info('No buildable packages found!');
 		}
 	} catch (error: unknown) {
 		core.setFailed(error as Error);

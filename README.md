@@ -7,11 +7,12 @@ for distribution. It achieves this by:
 - Builds all packages using `cargo build --release --target wasm32-wasi`.
 - Optimizes all `.wasm` files with `wasm-opt` and `wasm-strip`.
 - Generates `.sha256` checksum files for all `.wasm` files.
+- Moves built files to a `builds` directory.
 
 ## Installation
 
-Here's an example GitHub action workflow that builds the packages, and creates a GitHub release when
-a tag is pushed.
+Here's an example GitHub action workflow that builds applicable packages and creates a GitHub
+release when a tag is pushed.
 
 ```yaml
 name: Release
