@@ -9,6 +9,7 @@ import * as tc from '@actions/tool-cache';
 interface BuildInfo {
 	packageName: string;
 	targetName: string;
+	optLevel: string;
 }
 
 // https://github.com/WebAssembly/binaryen
@@ -57,6 +58,7 @@ async function findBuildablePackages() {
 	interface Package {
 		id: string;
 		name: string;
+		manifest_path: string;
 		targets: {
 			crate_types: string[];
 			name: string;
@@ -68,10 +70,14 @@ async function findBuildablePackages() {
 		workspace_members: string[];
 	}
 
+	interface Manifest {
+		profile?: Record<string, { 'opt-level'?: string }>;
+	}
+
 	const builds: BuildInfo[] = [];
 	let output = '';
 
-	await exec.exec('cargo', ['metadata', '--format-version', '1'], {
+	await exec.exec('cargo', ['metadata', '--format-version', '1', '--no-deps'], {
 		listeners: {
 			stdout: (data: Buffer) => {
 				output += data.toString();
@@ -81,20 +87,27 @@ async function findBuildablePackages() {
 
 	const metadata = JSON.parse(output) as Metadata;
 
-	metadata.packages.forEach((pkg) => {
-		if (!metadata.workspace_members.includes(pkg.id)) {
-			return;
-		}
-
-		pkg.targets.forEach((target) => {
-			if (target.crate_types.includes('cdylib')) {
-				builds.push({
-					packageName: pkg.name,
-					targetName: target.name,
-				});
+	await Promise.all(
+		metadata.packages.map(async (pkg) => {
+			if (!metadata.workspace_members.includes(pkg.id)) {
+				return;
 			}
-		});
-	});
+
+			const manifest = JSON.parse(
+				await fs.promises.readFile(pkg.manifest_path, 'utf8'),
+			) as Manifest;
+
+			pkg.targets.forEach((target) => {
+				if (target.crate_types.includes('cdylib')) {
+					builds.push({
+						optLevel: manifest.profile?.release?.['opt-level'] ?? 's',
+						packageName: pkg.name,
+						targetName: target.name,
+					});
+				}
+			});
+		}),
+	);
 
 	return builds;
 }
@@ -117,7 +130,7 @@ async function buildPackages(builds: BuildInfo[]) {
 
 	await Promise.all(
 		builds.map(async (build) => {
-			core.debug(`Building ${build.packageName}...`);
+			core.debug(`Building ${build.packageName} (mode=release, target=wasm32-wasi)`);
 
 			await exec.exec('cargo', [
 				'build',
@@ -128,26 +141,29 @@ async function buildPackages(builds: BuildInfo[]) {
 				'wasm32-wasi',
 			]);
 
-			core.debug(`Optimizing ${build.packageName}...`);
+			core.debug(`Optimizing ${build.packageName} (level=${build.optLevel})`);
 
 			const fileName = `${build.targetName}.wasm`;
 			const inputFile = path.join(root, 'target/wasm32-wasi/release', fileName);
 			const outputFile = path.join(buildDir, fileName);
 
-			await exec.exec('wasm-opt', ['-Os', inputFile, '--output', outputFile]);
+			await exec.exec('wasm-opt', [`-O${build.optLevel}`, inputFile, '--output', outputFile]);
 
-			core.debug(`Stripping ${build.packageName}...`);
+			core.debug(`Stripping ${build.packageName}`);
 
 			await exec.exec('wasm-strip', [outputFile]);
 
-			core.debug(`Hashing ${build.packageName}...`);
+			core.debug(`Hashing ${build.packageName} (checksum=sha256)`);
 
 			const checksumFile = `${outputFile}.sha256`;
+			const checksumHash = await hashFile(outputFile);
 
-			await fs.promises.writeFile(checksumFile, await hashFile(outputFile));
+			await fs.promises.writeFile(checksumFile, checksumHash);
 
+			core.info(build.packageName);
 			core.info(`--> ${outputFile}`);
 			core.info(`--> ${checksumFile}`);
+			core.info(`--> ${checksumHash}`);
 		}),
 	);
 }
@@ -156,9 +172,7 @@ async function run() {
 	try {
 		await Promise.all([installWabt(), installBinaryen()]);
 
-		const builds = await findBuildablePackages();
-
-		await buildPackages(builds);
+		await buildPackages(await findBuildablePackages());
 	} catch (error: unknown) {
 		core.setFailed(error as Error);
 	}
