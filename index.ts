@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -75,6 +77,7 @@ async function findBuildablePackages() {
 	}
 
 	interface Manifest {
+		package?: { publish?: boolean };
 		profile?: Record<string, { 'opt-level'?: string }>;
 	}
 
@@ -85,32 +88,34 @@ async function findBuildablePackages() {
 	const builds: BuildInfo[] = [];
 	const metadata = JSON.parse(output.trim()) as Metadata;
 
-	await Promise.all(
-		metadata.packages.map(async (pkg) => {
-			if (!metadata.workspace_members.includes(pkg.id)) {
-				core.debug(`Skipping ${pkg.name}, not a workspace member`);
-				return;
+	metadata.packages.forEach((pkg) => {
+		if (!metadata.workspace_members.includes(pkg.id)) {
+			core.info(`Skipping ${pkg.name}, not a workspace member`);
+			return;
+		}
+
+		core.info(`Found ${pkg.name}, loading manifest ${pkg.manifest_path}, checking targets`);
+
+		const manifest = TOML.parse(fs.readFileSync(pkg.manifest_path, 'utf8')) as Manifest;
+		const publish = manifest.package?.publish ?? true;
+
+		if (!publish) {
+			core.info(`Skipping ${pkg.name}, not publishable`);
+			return;
+		}
+
+		pkg.targets.forEach((target) => {
+			if (target.crate_types.includes('cdylib')) {
+				core.info(`Has cdylib lib target, adding build`);
+
+				builds.push({
+					optLevel: manifest.profile?.release?.['opt-level'] ?? 's',
+					packageName: pkg.name,
+					targetName: target.name,
+				});
 			}
-
-			core.debug(`Found ${pkg.name}, loading manifest ${pkg.manifest_path}, checking targets`);
-
-			const manifest = TOML.parse(
-				await fs.promises.readFile(pkg.manifest_path, 'utf8'),
-			) as Manifest;
-
-			pkg.targets.forEach((target) => {
-				if (target.crate_types.includes('cdylib')) {
-					core.debug(`Found cdylib target, adding build`);
-
-					builds.push({
-						optLevel: manifest.profile?.release?.['opt-level'] ?? 's',
-						packageName: pkg.name,
-						targetName: target.name,
-					});
-				}
-			});
-		}),
-	);
+		});
+	});
 
 	core.info(`Found ${builds.length} builds`);
 
@@ -133,7 +138,7 @@ async function buildPackages(builds: BuildInfo[]) {
 
 	await fs.promises.mkdir(buildDir);
 
-	core.debug(`Building (mode=release, target=wasm32-wasi)`);
+	core.info(`Building all (mode=release, target=wasm32-wasi)`);
 
 	await exec.exec('cargo', [
 		'build',
@@ -142,36 +147,43 @@ async function buildPackages(builds: BuildInfo[]) {
 		...builds.map((build) => `--package=${build.packageName}`),
 	]);
 
-	await Promise.all(
-		builds.map(async (build) => {
-			core.debug(`Optimizing ${build.packageName} (level=${build.optLevel})`);
+	for (const build of builds) {
+		core.info(`Optimizing ${build.packageName} (level=${build.optLevel})`);
 
-			const fileName = `${build.targetName}.wasm`;
-			const inputFile = path.join(root, 'target/wasm32-wasi/release', fileName);
-			const outputFile = path.join(buildDir, fileName);
+		const fileName = `${build.targetName}.wasm`;
+		const inputFile = path.join(root, 'target/wasm32-wasi/release', fileName);
+		const outputFile = path.join(buildDir, fileName);
 
-			await exec.exec('wasm-opt', [`-O${build.optLevel}`, inputFile, '--output', outputFile]);
-			await exec.exec('wasm-strip', [outputFile]);
+		core.debug(`Input: ${inputFile}`);
+		core.debug(`Output: ${outputFile}`);
 
-			core.debug(`Hashing ${build.packageName} (checksum=sha256)`);
+		await exec.exec('wasm-opt', [`-O${build.optLevel}`, inputFile, '--output', outputFile]);
+		await exec.exec('wasm-strip', [outputFile]);
 
-			const checksumFile = `${outputFile}.sha256`;
-			const checksumHash = await hashFile(outputFile);
+		core.info(`Hashing ${build.packageName} (checksum=sha256)`);
 
-			await fs.promises.writeFile(checksumFile, checksumHash);
+		const checksumFile = `${outputFile}.sha256`;
+		const checksumHash = await hashFile(outputFile);
 
-			core.info(`${build.packageName} (${checksumHash})`);
-			core.info(`--> ${outputFile}`);
-			core.info(`--> ${checksumFile}`);
-		}),
-	);
+		await fs.promises.writeFile(checksumFile, checksumHash);
+
+		core.info(`${build.packageName} (${checksumHash})`);
+		core.info(`--> ${outputFile}`);
+		core.info(`--> ${checksumFile}`);
+	}
 }
 
 async function run() {
 	try {
 		await Promise.all([installWabt(), installBinaryen()]);
 
-		await buildPackages(await findBuildablePackages());
+		const builds = await findBuildablePackages();
+
+		if (builds.length > 0) {
+			await buildPackages(builds);
+		} else {
+			core.info('No buildable packages found!');
+		}
 	} catch (error: unknown) {
 		core.setFailed(error as Error);
 	}
