@@ -13,6 +13,9 @@ interface BuildInfo {
 	optLevel: string;
 }
 
+const BINARYEN_VERSION = '116';
+const WABT_VERSION = '1.0.34';
+
 // https://github.com/WebAssembly/binaryen
 async function installBinaryen() {
 	core.info('Installing WebAssembly binaryen');
@@ -26,11 +29,11 @@ async function installBinaryen() {
 	}
 
 	const downloadFile = await tc.downloadTool(
-		`https://github.com/WebAssembly/binaryen/releases/download/version_116/binaryen-version_116-x86_64-${platform}.tar.gz`,
+		`https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-${platform}.tar.gz`,
 	);
 	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'binaryen'));
 
-	core.addPath(path.join(extractedDir, 'bin'));
+	core.addPath(path.join(extractedDir, `binaryen-version_${BINARYEN_VERSION}/bin`));
 }
 
 // https://github.com/WebAssembly/wabt
@@ -46,11 +49,11 @@ async function installWabt() {
 	}
 
 	const downloadFile = await tc.downloadTool(
-		`https://github.com/WebAssembly/wabt/releases/download/1.0.34/wabt-1.0.34-${platform}.tar.gz`,
+		`https://github.com/WebAssembly/wabt/releases/download/${WABT_VERSION}/wabt-${WABT_VERSION}-${platform}.tar.gz`,
 	);
 	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'wabt'));
 
-	core.addPath(path.join(extractedDir, 'bin'));
+	core.addPath(path.join(extractedDir, `wabt-${WABT_VERSION}/bin`));
 }
 
 async function findBuildablePackages() {
