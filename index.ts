@@ -133,19 +133,17 @@ async function buildPackages(builds: BuildInfo[]) {
 
 	await fs.promises.mkdir(buildDir);
 
+	core.debug(`Building (mode=release, target=wasm32-wasi)`);
+
+	await exec.exec('cargo', [
+		'build',
+		'--release',
+		'--target=wasm32-wasi',
+		...builds.map((build) => `--package=${build.packageName}`),
+	]);
+
 	await Promise.all(
 		builds.map(async (build) => {
-			core.debug(`Building ${build.packageName} (mode=release, target=wasm32-wasi)`);
-
-			await exec.exec('cargo', [
-				'build',
-				'--release',
-				'--package',
-				build.packageName,
-				'--target',
-				'wasm32-wasi',
-			]);
-
 			core.debug(`Optimizing ${build.packageName} (level=${build.optLevel})`);
 
 			const fileName = `${build.targetName}.wasm`;
@@ -153,9 +151,6 @@ async function buildPackages(builds: BuildInfo[]) {
 			const outputFile = path.join(buildDir, fileName);
 
 			await exec.exec('wasm-opt', [`-O${build.optLevel}`, inputFile, '--output', outputFile]);
-
-			core.debug(`Stripping ${build.packageName}`);
-
 			await exec.exec('wasm-strip', [outputFile]);
 
 			core.debug(`Hashing ${build.packageName} (checksum=sha256)`);
@@ -165,10 +160,9 @@ async function buildPackages(builds: BuildInfo[]) {
 
 			await fs.promises.writeFile(checksumFile, checksumHash);
 
-			core.info(build.packageName);
+			core.info(`${build.packageName} (${checksumHash})`);
 			core.info(`--> ${outputFile}`);
 			core.info(`--> ${checksumFile}`);
-			core.info(`--> ${checksumHash}`);
 		}),
 	);
 }
