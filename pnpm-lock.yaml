@@ -14,6 +14,9 @@ dependencies:
   '@actions/tool-cache':
     specifier: ^2.0.1
     version: 2.0.1
+  '@ltd/j-toml':
+    specifier: ^1.38.0
+    version: 1.38.0
 
 devDependencies:
   '@types/node':
@@ -199,6 +202,10 @@ packages:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
+
+  /@ltd/j-toml@1.38.0:
+    resolution: {integrity: sha512-lYtBcmvHustHQtg4X7TXUu1Xa/tbLC3p2wLvgQI+fWVySguVZJF60Snxijw5EiohumxZbR10kWYFFebh1zotiw==}
+    dev: false
 
   /@mdn/browser-compat-data@5.3.28:
     resolution: {integrity: sha512-vC+UDAsQti7Cv2oBahPfgnTXT7n0XZk8e7UFucNMmkauszdiiEsNFI0elmMMrh2u+IaMOvAAHo3DDzMx7y80Cw==}

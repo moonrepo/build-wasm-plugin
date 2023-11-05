@@ -1,6 +1,6 @@
 {
   "name": "@moonrepo/build-proto-plugin",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A GitHub action to build, optimize, and prepare a proto WASM plugin for release.",
   "main": "dist/index.js",
   "scripts": {
@@ -21,7 +21,8 @@
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@actions/exec": "^1.1.1",
-    "@actions/tool-cache": "^2.0.1"
+    "@actions/tool-cache": "^2.0.1",
+    "@ltd/j-toml": "^1.38.0"
   },
   "devDependencies": {
     "@types/node": "^20.7.1",

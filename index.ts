@@ -5,6 +5,7 @@ import path from 'node:path';
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as tc from '@actions/tool-cache';
+import TOML from '@ltd/j-toml';
 
 interface BuildInfo {
 	packageName: string;
@@ -90,7 +91,7 @@ async function findBuildablePackages() {
 
 			core.debug(`Found ${pkg.name}, loading manifest ${pkg.manifest_path}, checking targets`);
 
-			const manifest = JSON.parse(
+			const manifest = TOML.parse(
 				await fs.promises.readFile(pkg.manifest_path, 'utf8'),
 			) as Manifest;
 
