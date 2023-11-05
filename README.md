@@ -52,7 +52,6 @@ jobs:
 
 Packages to be built and published must have the following configuration in their `Cargo.toml`:
 
-- The `package.publish` setting should be omitted or set to `true`.
 - The `lib.crate-type` setting should be set to `cdylib`.
 
 ```toml

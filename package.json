@@ -1,6 +1,6 @@
 {
   "name": "@moonrepo/build-proto-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A GitHub action to build, optimize, and prepare proto WASM plugins for release.",
   "main": "dist/index.js",
   "scripts": {

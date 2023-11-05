@@ -81,7 +81,6 @@ async function findBuildablePackages() {
 	}
 
 	interface Manifest {
-		package?: { publish?: boolean };
 		profile?: Record<string, { 'opt-level'?: string }>;
 	}
 
@@ -105,12 +104,6 @@ async function findBuildablePackages() {
 		core.info(`Found ${pkg.name}, loading manifest ${pkg.manifest_path}, checking targets`);
 
 		const manifest = TOML.parse(fs.readFileSync(pkg.manifest_path, 'utf8')) as Manifest;
-		const publish = manifest.package?.publish ?? true;
-
-		if (!publish) {
-			core.info(`Skipping ${pkg.name}, not publishable`);
-			return;
-		}
 
 		pkg.targets.forEach((target) => {
 			if (target.crate_types.includes('cdylib')) {
