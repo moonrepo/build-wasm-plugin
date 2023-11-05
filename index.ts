@@ -34,7 +34,7 @@ async function installBinaryen() {
 
 // https://github.com/WebAssembly/wabt
 async function installWabt() {
-	core.info('Installing Web Assembly Binary Toolkit (WABT)');
+	core.info('Installing WebAssembly wabt');
 
 	let platform = 'ubuntu';
 
@@ -74,24 +74,21 @@ async function findBuildablePackages() {
 		profile?: Record<string, { 'opt-level'?: string }>;
 	}
 
+	const output = (
+		await exec.getExecOutput('cargo', ['metadata', '--format-version', '1', '--no-deps'])
+	).stdout;
+
 	const builds: BuildInfo[] = [];
-	let output = '';
-
-	await exec.exec('cargo', ['metadata', '--format-version', '1', '--no-deps'], {
-		listeners: {
-			stdout: (data: Buffer) => {
-				output += data.toString();
-			},
-		},
-	});
-
-	const metadata = JSON.parse(output) as Metadata;
+	const metadata = JSON.parse(output.trim()) as Metadata;
 
 	await Promise.all(
 		metadata.packages.map(async (pkg) => {
 			if (!metadata.workspace_members.includes(pkg.id)) {
+				core.debug(`Skipping ${pkg.name}, not a workspace member`);
 				return;
 			}
+
+			core.debug(`Found ${pkg.name}, loading manifest ${pkg.manifest_path}, checking targets`);
 
 			const manifest = JSON.parse(
 				await fs.promises.readFile(pkg.manifest_path, 'utf8'),
@@ -99,6 +96,8 @@ async function findBuildablePackages() {
 
 			pkg.targets.forEach((target) => {
 				if (target.crate_types.includes('cdylib')) {
+					core.debug(`Found cdylib target, adding build`);
+
 					builds.push({
 						optLevel: manifest.profile?.release?.['opt-level'] ?? 's',
 						packageName: pkg.name,
@@ -108,6 +107,8 @@ async function findBuildablePackages() {
 			});
 		}),
 	);
+
+	core.info(`Found ${builds.length} builds`);
 
 	return builds;
 }
