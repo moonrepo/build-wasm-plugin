@@ -4,7 +4,7 @@
   "description": "A GitHub action to build, optimize, and prepare a proto WASM plugin for release.",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build ./index.ts && ncc build ./post.ts --out ./dist/post",
+    "build": "ncc build ./index.ts",
     "check": "pnpm run lint && pnpm run test && pnpm run typecheck",
     "deps": "pnpm update --latest --interactive",
     "lint": "eslint --ext .ts,.js --fix .",
