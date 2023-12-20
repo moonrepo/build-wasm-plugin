@@ -27,6 +27,7 @@ async function installBinaryen() {
 	core.info('Installing WebAssembly binaryen');
 
 	let platform = 'linux';
+	let arch = 'x86_64';
 
 	if (process.platform === 'darwin') {
 		platform = 'macos';
@@ -34,8 +35,12 @@ async function installBinaryen() {
 		platform = 'windows';
 	}
 
+	if (process.arch === 'arm64') {
+		arch = 'arm64';
+	}
+
 	const downloadFile = await tc.downloadTool(
-		`https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-${platform}.tar.gz`,
+		`https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-${arch}-${platform}.tar.gz`,
 	);
 	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'binaryen'));
 
@@ -49,7 +54,7 @@ async function installWabt() {
 	let platform = 'ubuntu';
 
 	if (process.platform === 'darwin') {
-		platform = 'macos';
+		platform = 'macos-12';
 	} else if (process.platform === 'win32') {
 		platform = 'windows';
 	}
