@@ -18,6 +18,10 @@ interface BuildInfo {
 const BINARYEN_VERSION = '116';
 const WABT_VERSION = '1.0.34';
 
+function getRoot(): string {
+	return process.env.GITHUB_WORKSPACE!;
+}
+
 // https://github.com/WebAssembly/binaryen
 async function installBinaryen() {
 	core.info('Installing WebAssembly binaryen');
@@ -58,8 +62,10 @@ async function installWabt() {
 	core.addPath(path.join(extractedDir, `wabt-${WABT_VERSION}/bin`));
 }
 
-function getRoot(): string {
-	return process.env.GITHUB_WORKSPACE!;
+async function addRustupTarget() {
+	core.info('Adding wasm32-wasi target');
+
+	await exec.exec('rustup', ['target', 'add', 'wasm32-wasi']);
 }
 
 async function findBuildablePackages() {
@@ -181,7 +187,7 @@ async function run() {
 		const builds = await findBuildablePackages();
 
 		if (builds.length > 0) {
-			await Promise.all([installWabt(), installBinaryen()]);
+			await Promise.all([installWabt(), installBinaryen(), addRustupTarget()]);
 			await buildPackages(builds);
 		}
 	} catch (error: unknown) {
