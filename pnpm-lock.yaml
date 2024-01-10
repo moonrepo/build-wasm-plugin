@@ -17,8 +17,14 @@ dependencies:
   '@ltd/j-toml':
     specifier: ^1.38.0
     version: 1.38.0
+  changelog-parser:
+    specifier: ^3.0.1
+    version: 3.0.1
 
 devDependencies:
+  '@types/changelog-parser':
+    specifier: ^2.8.4
+    version: 2.8.4
   '@types/node':
     specifier: ^20.10.8
     version: 20.10.8
@@ -255,6 +261,10 @@ packages:
 
   /@tsconfig/node16@1.0.4:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
+    dev: true
+
+  /@types/changelog-parser@2.8.4:
+    resolution: {integrity: sha512-lCjy5pdZr+PmGMUSnn/z1BPWb3ADiGXjwbKdLa6EnvZ+dY6815Ak65VWstOIq/x3mqEwdvmv+/2ExRElEEcXMw==}
     dev: true
 
   /@types/json-schema@7.0.15:
@@ -725,6 +735,15 @@ packages:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
     dev: true
+
+  /changelog-parser@3.0.1:
+    resolution: {integrity: sha512-1AEVJgnFEO4v5ukfEH/j9cr2Z39Y/GCieNi605azhufAolXF4vQAwZBY8BrUVRkvlI3gwe3i621/PIAW0zmmEQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dependencies:
+      line-reader: 0.2.4
+      remove-markdown: 0.5.0
+    dev: false
 
   /ci-info@3.9.0:
     resolution: {integrity: sha512-NIxF55hv4nSqQswkAeiOi1r83xy8JldOFDTWiug55KBu9Jnblncd2U6ViHmYgHf01TPZS77NJBhBMKdWj9HQMQ==}
@@ -2004,6 +2023,10 @@ packages:
       type-check: 0.4.0
     dev: true
 
+  /line-reader@0.2.4:
+    resolution: {integrity: sha512-342xzyZZS9uTiKwHJcMacopVl/WjrMMCZS1Qg4Uhl/WBknWRrGFdKOIS1Kec6SaiTcZMtmuxWvvIbPXj/+FMjA==}
+    dev: false
+
   /lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
     dev: true
@@ -2400,6 +2423,10 @@ packages:
     dependencies:
       jsesc: 0.5.0
     dev: true
+
+  /remove-markdown@0.5.0:
+    resolution: {integrity: sha512-x917M80K97K5IN1L8lUvFehsfhR8cYjGQ/yAMRI9E7JIKivtl5Emo5iD13DhMr+VojzMCiYk8V2byNPwT/oapg==}
+    dev: false
 
   /resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}

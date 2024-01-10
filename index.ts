@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import parseChangelog from 'changelog-parser';
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as tc from '@actions/tool-cache';
@@ -20,6 +21,18 @@ const WABT_VERSION = '1.0.34';
 
 function getRoot(): string {
 	return process.env.GITHUB_WORKSPACE!;
+}
+
+let PLUGIN_VERSION: string | null = null;
+
+function detectVersion() {
+	const ref = process.env.GITHUB_REF;
+
+	if (ref && ref.startsWith('refs/tags/')) {
+		PLUGIN_VERSION = ref.replace('refs/tags/', '');
+
+		core.setOutput('tag-version', PLUGIN_VERSION);
+	}
 }
 
 // https://github.com/WebAssembly/binaryen
@@ -181,19 +194,52 @@ async function buildPackages(builds: BuildInfo[]) {
 
 		await fs.promises.writeFile(checksumFile, checksumHash);
 
-		core.info(`${build.packageName} (${checksumHash})`);
-		core.info(`--> ${outputFile}`);
-		core.info(`--> ${checksumFile}`);
+		core.info(`Built ${build.packageName}`);
+		core.info(`\tPlugin file: ${checksumFile}`);
+		core.info(`\tChecksum file: ${outputFile}`);
+		core.info(`\tChecksum: ${checksumHash}`);
+	}
+}
+
+async function extractChangelog() {
+	let changelogPath = null;
+
+	for (const lookup of ['CHANGELOG.md', 'CHANGELOG', 'HISTORY.md', 'HISTORY']) {
+		const lookupPath = path.join(getRoot(), lookup);
+
+		if (fs.existsSync(lookupPath)) {
+			changelogPath = lookupPath;
+			break;
+		}
+	}
+
+	if (!changelogPath || !PLUGIN_VERSION) {
+		return;
+	}
+
+	const changelog = await parseChangelog({
+		filePath: changelogPath,
+		removeMarkdown: false,
+	});
+
+	for (const entry of changelog.versions) {
+		if (entry.version === PLUGIN_VERSION && entry.body) {
+			core.setOutput('changelog-entry', `## Changelog\n\n${entry.body.trim()}`);
+			break;
+		}
 	}
 }
 
 async function run() {
 	try {
+		detectVersion();
+
 		const builds = await findBuildablePackages();
 
 		if (builds.length > 0) {
 			await Promise.all([installWabt(), installBinaryen(), addRustupTarget()]);
 			await buildPackages(builds);
+			await extractChangelog();
 		}
 	} catch (error: unknown) {
 		core.setFailed(error as Error);
