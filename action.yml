@@ -7,3 +7,10 @@ runs:
 branding:
   icon: 'layers'
   color: 'red'
+outputs:
+  built:
+    description: 'Whether the plugins have been built or not.'
+  changelog-entry:
+    description: 'The changelog entry, if it exists.'
+  tag-version:
+    description: 'The extracted version from a Git tag, if applicable.'

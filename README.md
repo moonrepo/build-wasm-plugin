@@ -8,6 +8,7 @@ for distribution. It achieves this by:
 - Optimizes all `.wasm` files with `wasm-opt` and `wasm-strip`.
 - Generates `.sha256` checksum files for all `.wasm` files.
 - Moves built files to a `builds` directory.
+- Extract changelog information for a release.
 
 ## Installation
 
@@ -36,12 +37,14 @@ jobs:
         with:
           cache: false
           targets: wasm32-wasi
-      - uses: moonrepo/build-proto-plugin@v0
+      - id: build
+        uses: moonrepo/build-proto-plugin@v0
       - if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: ncipollo/release-action@v1
         with:
           artifacts: builds/*
           artifactErrorsFailBuild: true
+          body: ${{ steps.build.outputs.changelog-entry }}
           prerelease:
             ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') ||
             contains(github.ref_name, '-rc') }}
