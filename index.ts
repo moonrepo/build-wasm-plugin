@@ -199,6 +199,8 @@ async function buildPackages(builds: BuildInfo[]) {
 		core.info(`\tChecksum file: ${outputFile}`);
 		core.info(`\tChecksum: ${checksumHash}`);
 	}
+
+	core.setOutput('built', 'true');
 }
 
 async function extractChangelog() {
@@ -231,6 +233,10 @@ async function extractChangelog() {
 }
 
 async function run() {
+	core.setOutput('built', 'false');
+	core.setOutput('changelog-entry', '');
+	core.setOutput('tag-version', '');
+
 	try {
 		detectVersion();
 
@@ -239,8 +245,9 @@ async function run() {
 		if (builds.length > 0) {
 			await Promise.all([installWabt(), installBinaryen(), addRustupTarget()]);
 			await buildPackages(builds);
-			await extractChangelog();
 		}
+
+		await extractChangelog();
 	} catch (error: unknown) {
 		core.setFailed(error as Error);
 	}
