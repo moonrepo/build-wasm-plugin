@@ -1,3 +1,7 @@
+# 0.2.2
+
+- Strip `v` from tags when checking changelogs and setting output.
+
 # 0.2.1
 
 - Renamed to `build-wasm-plugin`.

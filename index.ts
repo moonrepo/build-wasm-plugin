@@ -29,9 +29,15 @@ function detectVersion() {
 	const ref = process.env.GITHUB_REF;
 
 	if (ref && ref.startsWith('refs/tags/')) {
-		PLUGIN_VERSION = ref.replace('refs/tags/', '');
+		let version = ref.replace('refs/tags/', '');
 
-		core.setOutput('tag-version', PLUGIN_VERSION);
+		if (version.startsWith('v') || version.startsWith('V')) {
+			version = version.slice(1);
+		}
+
+		core.setOutput('tag-version', version);
+
+		PLUGIN_VERSION = version;
 	}
 }
 
