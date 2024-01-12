@@ -1,7 +1,7 @@
-# Build proto plugin
+# Build WASM plugin
 
-This action will build Rust-based [proto WASM plugins](https://moonrepo.dev/docs/proto/wasm-plugin)
-for distribution. It achieves this by:
+This action will build Rust-based [WASM plugins](https://moonrepo.dev/docs/proto/wasm-plugin) for
+distribution, primarily for moon and proto. It achieves this by:
 
 - Finding all buildable packages using `cargo metadata`.
 - Builds all packages using `cargo build --release --target wasm32-wasi`.
@@ -38,7 +38,7 @@ jobs:
           cache: false
           targets: wasm32-wasi
       - id: build
-        uses: moonrepo/build-proto-plugin@v0
+        uses: moonrepo/build-wasm-plugin@v0
       - if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: ncipollo/release-action@v1
         with:

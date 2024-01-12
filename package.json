@@ -1,7 +1,7 @@
 {
-  "name": "@moonrepo/build-proto-plugin",
-  "version": "0.2.0",
-  "description": "A GitHub action to build, optimize, and prepare proto WASM plugins for release.",
+  "name": "@moonrepo/build-wasm-plugin",
+  "version": "0.2.1",
+  "description": "A GitHub action to build, optimize, and prepare WASM plugins for release.",
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build ./index.ts",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/moonrepo/build-proto-plugin"
+    "url": "https://github.com/moonrepo/build-wasm-plugin"
   },
   "author": "Miles Johnson",
   "license": "MIT",
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/changelog-parser": "^2.8.4",
-    "@types/node": "^20.10.8",
+    "@types/node": "^20.11.0",
     "@vercel/ncc": "^0.38.1",
     "eslint": "^8.56.0",
     "eslint-config-moon": "^2.0.14",

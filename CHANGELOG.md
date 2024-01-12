@@ -1,3 +1,7 @@
+# 0.2.1
+
+- Renamed to `build-wasm-plugin`.
+
 # 0.2.0
 
 - Added `built`, `changelog-entry`, and `tag-version` outputs.

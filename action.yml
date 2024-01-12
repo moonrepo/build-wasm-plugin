@@ -1,6 +1,8 @@
-name: 'Build proto plugin'
+name: 'Build WASM plugin'
 author: 'Miles Johnson'
-description: 'Build, optimize, and prepare proto WASM plugins for release.'
+description:
+  'Build, optimize, and prepare WASM plugins for release. This is primarily for the moon and proto
+  projects.'
 runs:
   using: 'node20'
   main: 'dist/index.js'
