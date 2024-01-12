@@ -1,3 +1,7 @@
+# 0.2.3
+
+- Removed "Changelog" title from release body.
+
 # 0.2.2
 
 - Strip `v` from tags when checking changelogs and setting output.

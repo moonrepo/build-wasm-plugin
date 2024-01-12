@@ -37,6 +37,8 @@ function detectVersion() {
 
 		core.setOutput('tag-version', version);
 
+		core.info(`Detected tagged version ${version}`);
+
 		PLUGIN_VERSION = version;
 	}
 }
@@ -232,7 +234,7 @@ async function extractChangelog() {
 
 	for (const entry of changelog.versions) {
 		if (entry.version === PLUGIN_VERSION && entry.body) {
-			core.setOutput('changelog-entry', `## Changelog\n\n${entry.body.trim()}`);
+			core.setOutput('changelog-entry', entry.body.trim());
 			break;
 		}
 	}
