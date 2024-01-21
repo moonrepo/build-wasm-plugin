@@ -23,6 +23,7 @@ function getRoot(): string {
 	return process.env.GITHUB_WORKSPACE!;
 }
 
+let TAG: string | null = null;
 let PLUGIN: string | null = null;
 let PLUGIN_VERSION: string | null = null;
 
@@ -33,6 +34,9 @@ function detectVersionAndProject() {
 		const tag = ref.replace('refs/tags/', '');
 		let project = '';
 		let version = '';
+
+		core.info(`Detected tag ${tag}`);
+		TAG = tag;
 
 		// project-v1.0.0
 		if (project.includes('-')) {
@@ -157,6 +161,11 @@ async function findBuildablePackages() {
 	metadata.packages.forEach((pkg) => {
 		if (!metadata.workspace_members.includes(pkg.id)) {
 			core.info(`Skipping ${pkg.name}, not a workspace member`);
+			return;
+		}
+
+		if (PLUGIN && pkg.name !== PLUGIN) {
+			core.info(`Skipping ${pkg.name}, not associated to tag ${TAG}`);
 			return;
 		}
 
