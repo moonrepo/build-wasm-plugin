@@ -1,3 +1,8 @@
+# 0.3.0
+
+- Updated to support monorepo based tags.
+- Added `tagged-project` output.
+
 # 0.2.3
 
 - Removed "Changelog" title from release body.
@@ -12,7 +17,7 @@
 
 # 0.2.0
 
-- Added `built`, `changelog-entry`, and `tag-version` outputs.
+- Added `built`, `changelog-entry`, and `tagged-version` outputs.
 - Will attempt to extract a changelog.
   - Refer to our readme for an updated GitHub workflow example.
 

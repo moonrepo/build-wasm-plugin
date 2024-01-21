@@ -23,23 +23,50 @@ function getRoot(): string {
 	return process.env.GITHUB_WORKSPACE!;
 }
 
+let PLUGIN: string | null = null;
 let PLUGIN_VERSION: string | null = null;
 
-function detectVersion() {
+function detectVersionAndProject() {
 	const ref = process.env.GITHUB_REF;
 
 	if (ref && ref.startsWith('refs/tags/')) {
-		let version = ref.replace('refs/tags/', '');
+		const tag = ref.replace('refs/tags/', '');
+		let project = '';
+		let version = '';
+
+		// project-v1.0.0
+		if (project.includes('-')) {
+			const lastIndex = project.lastIndexOf('-');
+
+			project = project.slice(0, lastIndex);
+			version = project.slice(lastIndex + 1);
+		}
+
+		// project@v1.0.0
+		else if (project.includes('@')) {
+			[project, version] = project.split('@');
+		}
+
+		// v1.0.0
+		else {
+			version = tag;
+		}
 
 		if (version.startsWith('v') || version.startsWith('V')) {
 			version = version.slice(1);
 		}
 
-		core.setOutput('tag-version', version);
-
 		core.info(`Detected tagged version ${version}`);
+		core.setOutput('tagged-version', version);
 
 		PLUGIN_VERSION = version;
+
+		if (project) {
+			core.info(`Detected tagged project ${project}`);
+			core.setOutput('tagged-project', project);
+
+			PLUGIN = project;
+		}
 	}
 }
 
@@ -243,10 +270,11 @@ async function extractChangelog() {
 async function run() {
 	core.setOutput('built', 'false');
 	core.setOutput('changelog-entry', '');
-	core.setOutput('tag-version', '');
+	core.setOutput('tagged-project', '');
+	core.setOutput('tagged-version', '');
 
 	try {
-		detectVersion();
+		detectVersionAndProject();
 
 		const builds = await findBuildablePackages();
 
