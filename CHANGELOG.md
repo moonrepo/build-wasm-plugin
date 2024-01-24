@@ -1,3 +1,7 @@
+# 0.3.1
+
+- Fixed broken tag parsing.
+
 # 0.3.0
 
 - Updated to support monorepo based tags.

@@ -39,16 +39,13 @@ function detectVersionAndProject() {
 		TAG = tag;
 
 		// project-v1.0.0
-		if (project.includes('-')) {
-			const lastIndex = project.lastIndexOf('-');
-
-			project = project.slice(0, lastIndex);
-			version = project.slice(lastIndex + 1);
+		if (tag.includes('-')) {
+			[project, version] = tag.split('-', 2);
 		}
 
 		// project@v1.0.0
-		else if (project.includes('@')) {
-			[project, version] = project.split('@');
+		else if (tag.includes('@')) {
+			[project, version] = tag.split('@', 2);
 		}
 
 		// v1.0.0
