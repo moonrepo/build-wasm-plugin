@@ -26,6 +26,7 @@ function getRoot(): string {
 let TAG: string | null = null;
 let PLUGIN: string | null = null;
 let PLUGIN_VERSION: string | null = null;
+let PLUGIN_ROOT: string | null = null;
 
 function detectVersionAndProject() {
 	const ref = process.env.GITHUB_REF;
@@ -184,6 +185,10 @@ async function findBuildablePackages() {
 				});
 			}
 		});
+
+		if (PLUGIN) {
+			PLUGIN_ROOT = path.dirname(pkg.manifest_path);
+		}
 	});
 
 	core.info(`Found ${builds.length} builds`);
@@ -248,7 +253,7 @@ async function extractChangelog() {
 	let changelogPath = null;
 
 	for (const lookup of ['CHANGELOG.md', 'CHANGELOG', 'HISTORY.md', 'HISTORY']) {
-		const lookupPath = path.join(getRoot(), lookup);
+		const lookupPath = path.join(PLUGIN_ROOT ?? getRoot(), lookup);
 
 		if (fs.existsSync(lookupPath)) {
 			changelogPath = lookupPath;
