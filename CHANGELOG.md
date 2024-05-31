@@ -1,3 +1,8 @@
+# 0.3.3
+
+- Updated binaryen to v117.
+- Updated wabt to v1.0.35.
+
 # 0.3.2
 
 - Support changelogs within each crate, instead of just the root.

@@ -16,8 +16,8 @@ interface BuildInfo {
 	optLevel: string;
 }
 
-const BINARYEN_VERSION = '116';
-const WABT_VERSION = '1.0.34';
+const BINARYEN_VERSION = '117';
+const WABT_VERSION = '1.0.35';
 
 function getRoot(): string {
 	return process.env.GITHUB_WORKSPACE!;
@@ -77,16 +77,16 @@ async function installBinaryen() {
 	core.info('Installing WebAssembly binaryen');
 
 	let platform = 'linux';
-	let arch = 'x86_64';
+	let arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64';
 
 	if (process.platform === 'darwin') {
 		platform = 'macos';
+
+		if (process.arch === 'arm64') {
+			arch = 'arm64';
+		}
 	} else if (process.platform === 'win32') {
 		platform = 'windows';
-	}
-
-	if (process.arch === 'arm64') {
-		arch = 'arm64';
 	}
 
 	const downloadFile = await tc.downloadTool(
@@ -101,10 +101,10 @@ async function installBinaryen() {
 async function installWabt() {
 	core.info('Installing WebAssembly wabt');
 
-	let platform = 'ubuntu';
+	let platform = 'ubuntu-20.04';
 
 	if (process.platform === 'darwin') {
-		platform = 'macos-12';
+		platform = process.arch === 'arm64' ? 'macos-14' : 'macos-12';
 	} else if (process.platform === 'win32') {
 		platform = 'windows';
 	}
