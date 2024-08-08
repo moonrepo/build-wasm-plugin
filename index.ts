@@ -16,8 +16,8 @@ interface BuildInfo {
 	optLevel: string;
 }
 
-const BINARYEN_VERSION = '117';
-const WABT_VERSION = '1.0.35';
+const BINARYEN_VERSION = '118';
+const WABT_VERSION = '1.0.36';
 
 function getRoot(): string {
 	return process.env.GITHUB_WORKSPACE!;
@@ -241,8 +241,8 @@ async function buildPackages(builds: BuildInfo[]) {
 		await fs.promises.writeFile(checksumFile, checksumHash);
 
 		core.info(`Built ${build.packageName}`);
-		core.info(`\tPlugin file: ${checksumFile}`);
-		core.info(`\tChecksum file: ${outputFile}`);
+		core.info(`\tPlugin file: ${outputFile}`);
+		core.info(`\tChecksum file: ${checksumFile}`);
 		core.info(`\tChecksum: ${checksumHash}`);
 	}
 
