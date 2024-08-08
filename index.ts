@@ -39,18 +39,12 @@ function detectVersionAndProject() {
 		core.info(`Detected tag ${tag}`);
 		TAG = tag;
 
-		// project-v1.0.0
-		if (tag.includes('-')) {
-			[project, version] = tag.split('-', 2);
-		}
+		const regex = /^(?:(?<project>[\w-]+)[@-])?(?<version>v?\d+\.\d+\.\d+)(?<suffix>[\w+.-]+)?$/i;
+		const match = tag.match(regex);
 
-		// project@v1.0.0
-		else if (tag.includes('@')) {
-			[project, version] = tag.split('@', 2);
-		}
-
-		// v1.0.0
-		else {
+		if (match?.groups) {
+			({ project = '', version = ''} = match.groups);
+		} else {
 			version = tag;
 		}
 
