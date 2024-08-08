@@ -1,3 +1,9 @@
+# 0.4.0
+
+- Updated tag parsing to support prerelease metadata.
+- Updated binaryen to v118.
+- Updated wabt to v1.0.36.
+
 # 0.3.3
 
 - Updated binaryen to v117.
