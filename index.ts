@@ -35,15 +35,17 @@ function detectVersionAndProject() {
 		const tag = ref.replace('refs/tags/', '');
 		let project = '';
 		let version = '';
+		let prerelease = false;
 
 		core.info(`Detected tag ${tag}`);
 		TAG = tag;
 
-		const regex = /^(?:(?<project>[\w-]+)[@-])?(?<version>v?\d+\.\d+\.\d+)(?<suffix>[\w+.-]+)?$/i;
+		const regex = /^(?:(?<project>[\w-]+)[@-])?(?<version>v?\d+\.\d+\.\d+(?<suffix>[\w+.-]+)?)$/i;
 		const match = tag.match(regex);
 
 		if (match?.groups) {
-			({ project = '', version = ''} = match.groups);
+			({ project = '', version = '' } = match.groups);
+			prerelease = !!match.groups?.suffix;
 		} else {
 			version = tag;
 		}
@@ -54,6 +56,7 @@ function detectVersionAndProject() {
 
 		core.info(`Detected tagged version ${version}`);
 		core.setOutput('tagged-version', version);
+		core.setOutput('prerelease', prerelease);
 
 		PLUGIN_VERSION = version;
 
