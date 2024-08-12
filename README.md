@@ -45,9 +45,7 @@ jobs:
           artifacts: builds/*
           artifactErrorsFailBuild: true
           body: ${{ steps.build.outputs.changelog-entry }}
-          prerelease:
-            ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') ||
-            contains(github.ref_name, '-rc') }}
+          prerelease: ${{ steps.build.outputs.prerelease == 'true' }}
           skipIfReleaseExists: true
 ```
 

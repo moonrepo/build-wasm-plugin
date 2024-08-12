@@ -1,3 +1,8 @@
+# 0.4.1
+
+- Added `prerelease` output.
+- Fixed handling of prerelease identifiers/suffixes.
+
 # 0.4.0
 
 - Updated tag parsing to support prerelease metadata.

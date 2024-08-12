@@ -18,3 +18,5 @@ outputs:
     description: 'The project affected by a Git tag, if applicable.'
   tagged-version:
     description: 'The extracted version from a Git tag, if applicable.'
+  prerelease:
+    description: 'Whether the extracted version is a pre-release or not.'
