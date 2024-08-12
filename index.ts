@@ -280,6 +280,7 @@ async function run() {
 	core.setOutput('changelog-entry', '');
 	core.setOutput('tagged-project', '');
 	core.setOutput('tagged-version', '');
+	core.setOutput('prerelease', 'false');
 
 	try {
 		detectVersionAndProject();
