@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import parseChangelog from 'changelog-parser';
+import semver from 'semver';
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as tc from '@actions/tool-cache';
@@ -16,7 +17,7 @@ interface BuildInfo {
 	optLevel: string;
 }
 
-const BINARYEN_VERSION = '118';
+const BINARYEN_VERSION = '121';
 const WABT_VERSION = '1.0.36';
 
 function getRoot(): string {
@@ -114,10 +115,54 @@ async function installWabt() {
 	core.addPath(path.join(extractedDir, `wabt-${WABT_VERSION}/bin`));
 }
 
-async function addRustupTarget() {
-	core.info('Adding wasm32-wasi target');
+let WASM_TARGET = '';
 
-	await exec.exec('rustup', ['target', 'add', 'wasm32-wasi']);
+async function getWasmTarget(): Promise<string> {
+	if (WASM_TARGET) {
+		return WASM_TARGET;
+	}
+
+	const tcPaths = [
+		path.join(getRoot(), 'rust-toolchain'),
+		path.join(getRoot(), 'rust-toolchain.toml'),
+	];
+
+	for (const tcPath of tcPaths) {
+		if (fs.existsSync(tcPath)) {
+			const content = await fs.promises.readFile(tcPath, 'utf8');
+			let version: string | undefined;
+
+			if (content.includes('[toolchain')) {
+				const data = TOML.parse(content) as {
+					toolchain?: {
+						channel?: string
+					}
+				};
+
+				version = data?.toolchain?.channel;
+			} else {
+				version = content.trim();
+			}
+
+			if (version && (version.includes('nightly') || semver.satisfies(version, '>=1.78.0'))) {
+					WASM_TARGET = 'wasm32-wasip1';
+
+					return WASM_TARGET;
+			}
+		}
+	}
+
+	WASM_TARGET = 'wasm32-wasi';
+
+	return WASM_TARGET;
+}
+
+async function addRustupTarget() {
+	const target = await getWasmTarget();
+
+	core.info(`Adding ${target} target`);
+
+	await exec.exec('rustup', ['target', 'add', target]);
 }
 
 async function findBuildablePackages() {
@@ -196,7 +241,7 @@ async function findBuildablePackages() {
 async function hashFile(filePath: string): Promise<string> {
 	const hasher = crypto.createHash('sha256');
 
-	hasher.update(await fs.promises.readFile(filePath));
+	hasher.update(await fs.promises.readFile(filePath, 'utf8'));
 
 	return hasher.digest('hex');
 }
@@ -205,15 +250,16 @@ async function buildPackages(builds: BuildInfo[]) {
 	core.info(`Building packages: ${builds.map((build) => build.packageName).join(', ')}`);
 
 	const buildDir = path.join(getRoot(), 'builds');
+	const wasmTarget = await getWasmTarget();
 
 	await fs.promises.mkdir(buildDir);
 
-	core.info(`Building all (mode=release, target=wasm32-wasi)`);
+	core.info(`Building all (mode=release, target=${wasmTarget})`);
 
 	await exec.exec('cargo', [
 		'build',
 		'--release',
-		'--target=wasm32-wasip1',
+		`--target=${wasmTarget}`,
 		...builds.map((build) => `--package=${build.packageName}`),
 	]);
 
@@ -221,7 +267,7 @@ async function buildPackages(builds: BuildInfo[]) {
 		core.info(`Optimizing ${build.packageName} (level=${build.optLevel})`);
 
 		const fileName = `${build.targetName}.wasm`;
-		const inputFile = path.join(getRoot(), 'target/wasm32-wasi/release', fileName);
+		const inputFile = path.join(getRoot(), 'target', wasmTarget, 'release', fileName);
 		const outputFile = path.join(buildDir, fileName);
 
 		core.debug(`Input: ${inputFile}`);
