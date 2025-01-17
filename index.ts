@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import parseChangelog from 'changelog-parser';
+import semver from 'semver';
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as tc from '@actions/tool-cache';
@@ -143,7 +144,7 @@ async function getWasmTarget(): Promise<string> {
 				version = content.trim();
 			}
 
-			if (version && version.includes('nightly')) {
+			if (version && (version.includes('nightly') || semver.satisfies(version, '>=1.78.0'))) {
 					WASM_TARGET = 'wasm32-wasip1';
 
 					return WASM_TARGET;
@@ -240,7 +241,7 @@ async function findBuildablePackages() {
 async function hashFile(filePath: string): Promise<string> {
 	const hasher = crypto.createHash('sha256');
 
-	hasher.update(await fs.promises.readFile(filePath));
+	hasher.update(await fs.promises.readFile(filePath, 'utf8'));
 
 	return hasher.digest('hex');
 }
