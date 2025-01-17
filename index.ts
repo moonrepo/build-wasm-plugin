@@ -213,7 +213,7 @@ async function buildPackages(builds: BuildInfo[]) {
 	await exec.exec('cargo', [
 		'build',
 		'--release',
-		'--target=wasm32-wasi',
+		'--target=wasm32-wasip1',
 		...builds.map((build) => `--package=${build.packageName}`),
 	]);
 
