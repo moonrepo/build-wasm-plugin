@@ -1,3 +1,8 @@
+# 0.4.2
+
+- Added support for `wasm32-wasip1` target.
+- Updated binaryen to v121.
+
 # 0.4.1
 
 - Added `prerelease` output.
