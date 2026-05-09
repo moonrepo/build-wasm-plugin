@@ -10,12 +10,7 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as tc from '@actions/tool-cache';
 import TOML from '@ltd/j-toml';
-
-interface BuildInfo {
-	packageName: string;
-	targetName: string;
-	optLevel: string;
-}
+import type { BuildablePackage, CargoMetadata, CargoTomlManifest } from './types';
 
 const BINARYEN_VERSION = '129';
 const WABT_VERSION = '1.0.41';
@@ -32,7 +27,7 @@ let PLUGIN_ROOT: string | null = null;
 function detectVersionAndProject() {
 	const ref = process.env.GITHUB_REF;
 
-	if (ref && ref.startsWith('refs/tags/')) {
+	if (ref?.startsWith('refs/tags/')) {
 		const tag = ref.replace('refs/tags/', '');
 		let project = '';
 		let version = '';
@@ -75,7 +70,7 @@ async function installBinaryen() {
 	core.info('Installing WebAssembly binaryen');
 
 	let platform = 'linux';
-	let arch = process.arch;
+	let { arch } = process;
 
 	if (process.platform === 'darwin') {
 		platform = 'macos';
@@ -100,7 +95,7 @@ async function installWabt() {
 	core.info('Installing WebAssembly wabt');
 
 	let platform = 'linux';
-	let arch = process.arch;
+	let { arch } = process;
 
 	if (process.platform === 'darwin') {
 		platform = 'macos';
@@ -140,8 +135,8 @@ async function getWasmTarget(): Promise<string> {
 			if (content.includes('[toolchain')) {
 				const data = TOML.parse(content) as {
 					toolchain?: {
-						channel?: string
-					}
+						channel?: string;
+					};
 				};
 
 				version = data?.toolchain?.channel;
@@ -150,9 +145,9 @@ async function getWasmTarget(): Promise<string> {
 			}
 
 			if (version && (version.includes('nightly') || semver.satisfies(version, '>=1.78.0'))) {
-					WASM_TARGET = 'wasm32-wasip1';
+				WASM_TARGET = 'wasm32-wasip1';
 
-					return WASM_TARGET;
+				return WASM_TARGET;
 			}
 		}
 	}
@@ -170,38 +165,19 @@ async function addRustupTarget() {
 	await exec.exec('rustup', ['target', 'add', target]);
 }
 
-async function findBuildablePackages() {
+async function findBuildablePackages(): Promise<BuildablePackage[]> {
 	core.info('Finding buildable packages in Cargo workspace');
-
-	interface Package {
-		id: string;
-		name: string;
-		manifest_path: string;
-		targets: {
-			crate_types: string[];
-			name: string;
-		}[];
-	}
-
-	interface Metadata {
-		packages: Package[];
-		workspace_members: string[];
-	}
-
-	interface Manifest {
-		profile?: Record<string, { 'opt-level'?: string }>;
-	}
 
 	const output = (
 		await exec.getExecOutput('cargo', ['metadata', '--format-version', '1', '--no-deps'])
 	).stdout;
 
-	const builds: BuildInfo[] = [];
-	const metadata = JSON.parse(output) as Metadata;
+	const packages: BuildablePackage[] = [];
+	const metadata = JSON.parse(output) as CargoMetadata;
 
 	const rootManifest = TOML.parse(
 		await fs.promises.readFile(path.join(getRoot(), 'Cargo.toml'), 'utf8'),
-	) as Manifest;
+	) as CargoTomlManifest;
 
 	metadata.packages.forEach((pkg) => {
 		if (!metadata.workspace_members.includes(pkg.id)) {
@@ -216,31 +192,41 @@ async function findBuildablePackages() {
 
 		core.info(`Found ${pkg.name}, loading manifest ${pkg.manifest_path}, checking targets`);
 
-		const manifest = TOML.parse(fs.readFileSync(pkg.manifest_path, 'utf8')) as Manifest;
+		const manifest = TOML.parse(fs.readFileSync(pkg.manifest_path, 'utf8')) as CargoTomlManifest;
+		const buildable: BuildablePackage = {
+			package: pkg,
+		};
 
-		pkg.targets.forEach((target) => {
+		pkg.targets.some((target) => {
 			if (target.crate_types.includes('cdylib')) {
 				core.info(`Has cdylib lib target, adding build`);
 
-				builds.push({
+				buildable.input = {
 					optLevel:
 						manifest.profile?.release?.['opt-level'] ??
 						rootManifest.profile?.release?.['opt-level'] ??
 						's',
-					packageName: pkg.name,
 					targetName: target.name,
-				});
+				};
+
+				return true;
 			}
+
+			return false;
 		});
 
 		if (PLUGIN) {
 			PLUGIN_ROOT = path.dirname(pkg.manifest_path);
 		}
+
+		if (buildable.input) {
+			packages.push(buildable);
+		}
 	});
 
-	core.info(`Found ${builds.length} builds`);
+	core.info(`Found ${packages.length} buildable packages`);
 
-	return builds;
+	return packages;
 }
 
 async function hashFile(filePath: string): Promise<string> {
@@ -251,8 +237,8 @@ async function hashFile(filePath: string): Promise<string> {
 	return hasher.digest('hex');
 }
 
-async function buildPackages(builds: BuildInfo[]) {
-	core.info(`Building packages: ${builds.map((build) => build.packageName).join(', ')}`);
+async function buildPackages(packages: BuildablePackage[]) {
+	core.info(`Building packages: ${packages.map((pkg) => pkg.package.name).join(', ')}`);
 
 	const buildDir = path.join(getRoot(), 'builds');
 	const wasmTarget = await getWasmTarget();
@@ -265,33 +251,45 @@ async function buildPackages(builds: BuildInfo[]) {
 		'build',
 		'--release',
 		`--target=${wasmTarget}`,
-		...builds.map((build) => `--package=${build.packageName}`),
+		...packages.map((pkg) => `--package=${pkg.package.name}`),
 	]);
 
-	for (const build of builds) {
-		core.info(`Optimizing ${build.packageName} (level=${build.optLevel})`);
+	for (const pkg of packages) {
+		if (!pkg.input) continue;
 
-		const fileName = `${build.targetName}.wasm`;
+		const pkgName = pkg.package.name;
+		const { optLevel, targetName } = pkg.input;
+
+		core.info(`Optimizing ${pkgName} (level=${optLevel})`);
+
+		const fileName = `${targetName}.wasm`;
 		const inputFile = path.join(getRoot(), 'target', wasmTarget, 'release', fileName);
 		const outputFile = path.join(buildDir, fileName);
 
 		core.debug(`Input: ${inputFile}`);
 		core.debug(`Output: ${outputFile}`);
 
-		await exec.exec('wasm-opt', [`-O${build.optLevel}`, inputFile, '--output', outputFile]);
+		await exec.exec('wasm-opt', [`-O${optLevel}`, inputFile, '--output', outputFile]);
 		await exec.exec('wasm-strip', [outputFile]);
 
-		core.info(`Hashing ${build.packageName} (checksum=sha256)`);
+		core.info(`Hashing ${pkgName} (checksum=sha256)`);
 
 		const checksumFile = `${outputFile}.sha256`;
 		const checksumHash = await hashFile(outputFile);
 
 		await fs.promises.writeFile(checksumFile, checksumHash);
 
-		core.info(`Built ${build.packageName}`);
+		core.info(`Built ${pkgName}`);
 		core.info(`\tPlugin file: ${outputFile}`);
 		core.info(`\tChecksum file: ${checksumFile}`);
 		core.info(`\tChecksum: ${checksumHash}`);
+
+		pkg.output = {
+			inputFile,
+			outputFile,
+			checksumFile,
+			checksumHash,
+		};
 	}
 
 	core.setOutput('built', 'true');
@@ -336,11 +334,11 @@ async function run() {
 	try {
 		detectVersionAndProject();
 
-		const builds = await findBuildablePackages();
+		const packages = await findBuildablePackages();
 
-		if (builds.length > 0) {
+		if (packages.length > 0) {
 			await Promise.all([installWabt(), installBinaryen(), addRustupTarget()]);
-			await buildPackages(builds);
+			await buildPackages(packages);
 		}
 
 		await extractChangelog();
