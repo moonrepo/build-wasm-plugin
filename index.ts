@@ -11,17 +11,15 @@ import TOML from '@ltd/j-toml';
 import { installBinaryen, installWabt, installOras } from './bins';
 import type { BuildablePackage, CargoMetadata, CargoTomlManifest } from './types';
 
-const BINARYEN_VERSION = '129';
-const WABT_VERSION = '1.0.41';
-
-function getRoot(): string {
-	return process.env.GITHUB_WORKSPACE!;
-}
-
 let TAG: string | null = null;
 let PLUGIN: string | null = null;
 let PLUGIN_VERSION: string | null = null;
 let PLUGIN_ROOT: string | null = null;
+let WASM_TARGET: string | null = null;
+
+function getRoot(): string {
+	return process.env.GITHUB_WORKSPACE!;
+}
 
 function detectVersionAndProject() {
 	const ref = process.env.GITHUB_REF;
@@ -63,8 +61,6 @@ function detectVersionAndProject() {
 		}
 	}
 }
-
-let WASM_TARGET = '';
 
 async function getWasmTarget(): Promise<string> {
 	if (WASM_TARGET) {

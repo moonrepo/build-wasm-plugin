@@ -5,12 +5,8 @@
     "module": "Node16",
     "moduleResolution": "nodenext",
     "noEmit": true,
-    "verbatimModuleSyntax": false
+    "types": ["node"],
+    "verbatimModuleSyntax": false,
   },
-  "include": [
-    ".eslintrc.js",
-    "*.js",
-    "*.ts",
-    "tests/*.ts"
-  ]
+  "include": [".eslintrc.js", "*.js", "*.ts", "tests/*.ts"],
 }

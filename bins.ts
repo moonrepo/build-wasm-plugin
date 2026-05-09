@@ -11,8 +11,8 @@ const ORAS_VERSION = '1.3.2';
 export async function installBinaryen() {
 	core.info('Installing WebAssembly binaryen');
 
-	let platform = 'linux';
-	let { arch } = process;
+	let platform: string = 'linux';
+	let arch: string = process.arch;
 
 	if (process.platform === 'darwin') {
 		platform = 'macos';
@@ -38,8 +38,8 @@ export async function installBinaryen() {
 export async function installWabt() {
 	core.info('Installing WebAssembly wabt');
 
-	let platform = 'linux';
-	let { arch } = process;
+	let platform: string = 'linux';
+	let arch: string = process.arch;
 
 	if (process.platform === 'darwin') {
 		platform = 'macos';
@@ -63,8 +63,8 @@ export async function installWabt() {
 export async function installOras() {
 	core.info('Installing oras');
 
-	let platform = 'linux';
-	let { arch } = process;
+	let platform: string = 'linux';
+	let arch: string = process.arch;
 
 	if (process.platform === 'darwin') {
 		platform = 'darwin';
