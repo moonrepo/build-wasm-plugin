@@ -72,14 +72,14 @@ export async function installOras() {
 		platform = 'windows';
 	}
 
-	if (arch === 'x86_64') {
+	if (arch === 'x64') {
 		arch = 'amd64';
 	}
 
 	const downloadFile = await tc.downloadTool(
-		`https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_${arch}_${platform}.tar.gz`,
+		`https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_${platform}_${arch}.tar.gz`,
 	);
 	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'oras'));
 
-	core.addPath(path.join(extractedDir, `oras_${ORAS_VERSION}_${arch}_${platform}`));
+	core.addPath(path.join(extractedDir, `oras_${ORAS_VERSION}_${platform}_${arch}`));
 }

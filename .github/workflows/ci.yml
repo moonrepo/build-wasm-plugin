@@ -26,3 +26,4 @@ jobs:
       - run: node ./dist/index.js
         env:
           TEST_BINS: true
+      - run: ls -lR ~/binaryen ~/wabt ~/oras
