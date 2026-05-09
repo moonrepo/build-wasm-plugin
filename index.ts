@@ -17,8 +17,8 @@ interface BuildInfo {
 	optLevel: string;
 }
 
-const BINARYEN_VERSION = '121';
-const WABT_VERSION = '1.0.36';
+const BINARYEN_VERSION = '129';
+const WABT_VERSION = '1.0.41';
 
 function getRoot(): string {
 	return process.env.GITHUB_WORKSPACE!;
@@ -75,16 +75,16 @@ async function installBinaryen() {
 	core.info('Installing WebAssembly binaryen');
 
 	let platform = 'linux';
-	let arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64';
+	let arch = process.arch;
 
 	if (process.platform === 'darwin') {
 		platform = 'macos';
-
-		if (process.arch === 'arm64') {
-			arch = 'arm64';
-		}
 	} else if (process.platform === 'win32') {
 		platform = 'windows';
+	}
+
+	if (platform === 'linux' && arch === 'arm64') {
+		arch = 'aarch64';
 	}
 
 	const downloadFile = await tc.downloadTool(
@@ -99,16 +99,21 @@ async function installBinaryen() {
 async function installWabt() {
 	core.info('Installing WebAssembly wabt');
 
-	let platform = 'ubuntu-20.04';
+	let platform = 'linux';
+	let arch = process.arch;
 
 	if (process.platform === 'darwin') {
-		platform = process.arch === 'arm64' ? 'macos-14' : 'macos-12';
+		platform = 'macos';
 	} else if (process.platform === 'win32') {
 		platform = 'windows';
 	}
 
+	if (arch === 'x86_64') {
+		arch = 'x64';
+	}
+
 	const downloadFile = await tc.downloadTool(
-		`https://github.com/WebAssembly/wabt/releases/download/${WABT_VERSION}/wabt-${WABT_VERSION}-${platform}.tar.gz`,
+		`https://github.com/WebAssembly/wabt/releases/download/${WABT_VERSION}/wabt-${WABT_VERSION}-${platform}-${arch}.tar.gz`,
 	);
 	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'wabt'));
 
