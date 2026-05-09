@@ -1,6 +1,6 @@
 {
   "name": "@moonrepo/build-wasm-plugin",
-  "version": "0.6.0",
+  "version": "0.5.0",
   "description": "A GitHub action to build, optimize, and publish WASM plugins.",
   "main": "dist/index.js",
   "scripts": {
