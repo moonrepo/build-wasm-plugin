@@ -24,6 +24,10 @@ export async function installBinaryen() {
 		arch = 'aarch64';
 	}
 
+	if (arch === 'x64') {
+		arch = 'x86_64';
+	}
+
 	const downloadFile = await tc.downloadTool(
 		`https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-${arch}-${platform}.tar.gz`,
 	);
@@ -45,10 +49,6 @@ export async function installWabt() {
 		platform = 'macos';
 	} else if (process.platform === 'win32') {
 		platform = 'windows';
-	}
-
-	if (arch === 'x86_64') {
-		arch = 'x64';
 	}
 
 	const downloadFile = await tc.downloadTool(
