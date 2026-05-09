@@ -283,6 +283,12 @@ async function run() {
 	core.setOutput('tagged-version', '');
 	core.setOutput('prerelease', 'false');
 
+	if (process.env.TEST_BINS) {
+		await Promise.all([installWabt(), installBinaryen(), installOras()]);
+
+		return;
+	}
+
 	try {
 		detectVersionAndProject();
 
