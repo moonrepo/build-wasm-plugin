@@ -2,14 +2,13 @@
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import parseChangelog from 'changelog-parser';
 import semver from 'semver';
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
-import * as tc from '@actions/tool-cache';
 import TOML from '@ltd/j-toml';
+import { installBinaryen, installWabt, installOras } from './bins';
 import type { BuildablePackage, CargoMetadata, CargoTomlManifest } from './types';
 
 const BINARYEN_VERSION = '129';
@@ -63,56 +62,6 @@ function detectVersionAndProject() {
 			PLUGIN = project;
 		}
 	}
-}
-
-// https://github.com/WebAssembly/binaryen
-async function installBinaryen() {
-	core.info('Installing WebAssembly binaryen');
-
-	let platform = 'linux';
-	let { arch } = process;
-
-	if (process.platform === 'darwin') {
-		platform = 'macos';
-	} else if (process.platform === 'win32') {
-		platform = 'windows';
-	}
-
-	if (platform === 'linux' && arch === 'arm64') {
-		arch = 'aarch64';
-	}
-
-	const downloadFile = await tc.downloadTool(
-		`https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-${arch}-${platform}.tar.gz`,
-	);
-	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'binaryen'));
-
-	core.addPath(path.join(extractedDir, `binaryen-version_${BINARYEN_VERSION}/bin`));
-}
-
-// https://github.com/WebAssembly/wabt
-async function installWabt() {
-	core.info('Installing WebAssembly wabt');
-
-	let platform = 'linux';
-	let { arch } = process;
-
-	if (process.platform === 'darwin') {
-		platform = 'macos';
-	} else if (process.platform === 'win32') {
-		platform = 'windows';
-	}
-
-	if (arch === 'x86_64') {
-		arch = 'x64';
-	}
-
-	const downloadFile = await tc.downloadTool(
-		`https://github.com/WebAssembly/wabt/releases/download/${WABT_VERSION}/wabt-${WABT_VERSION}-${platform}-${arch}.tar.gz`,
-	);
-	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'wabt'));
-
-	core.addPath(path.join(extractedDir, `wabt-${WABT_VERSION}/bin`));
 }
 
 let WASM_TARGET = '';
@@ -298,7 +247,14 @@ async function buildPackages(packages: BuildablePackage[]) {
 async function extractChangelog() {
 	let changelogPath = null;
 
-	for (const lookup of ['CHANGELOG.md', 'CHANGELOG', 'HISTORY.md', 'HISTORY']) {
+	for (const lookup of [
+		'CHANGELOG.md',
+		'CHANGELOG',
+		'HISTORY.md',
+		'HISTORY',
+		'RELEASES.md',
+		'RELEASES',
+	]) {
 		const lookupPath = path.join(PLUGIN_ROOT ?? getRoot(), lookup);
 
 		if (fs.existsSync(lookupPath)) {
@@ -337,7 +293,7 @@ async function run() {
 		const packages = await findBuildablePackages();
 
 		if (packages.length > 0) {
-			await Promise.all([installWabt(), installBinaryen(), addRustupTarget()]);
+			await Promise.all([installWabt(), installBinaryen(), installOras(), addRustupTarget()]);
 			await buildPackages(packages);
 		}
 
