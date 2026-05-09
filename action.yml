@@ -1,10 +1,9 @@
 name: 'Build WASM plugin'
 author: 'Miles Johnson'
 description:
-  'Build, optimize, and prepare WASM plugins for release. This is primarily for the moon and proto
-  projects.'
+  'Build, optimize, and publish WASM plugins. This is primarily for the moon and proto projects.'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
 branding:
   icon: 'layers'

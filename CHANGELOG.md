@@ -1,3 +1,7 @@
+# 0.5.0
+
+- Updated action to support Node v24.
+
 # 0.4.2
 
 - Added support for `wasm32-wasip1` target.
