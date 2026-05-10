@@ -12,11 +12,13 @@ inputs:
   publish:
     description: 'Publish the built plugin to an OCI registry.'
     default: 'false'
+    required: false
   # registry:
   #   description: 'The OCI registry host.'
   #   default: 'ghcr.io'
   namespace:
     description: 'The OCI artifact namespace. Defaults to the current organization/user.'
+    required: false
 outputs:
   built:
     description: 'Whether the plugins have been built or not.'
