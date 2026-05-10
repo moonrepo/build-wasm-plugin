@@ -23,11 +23,12 @@ jobs:
       - run: npm install -g pnpm
       - run: pnpm install
       - run: pnpm run build
-      - run: node ./dist/index.js
+      - uses: ./ # self
         with:
           publish: 'true'
         env:
           TEST_AUTH: true
-      - run: node ./dist/index.js && ls -lR ~/binaryen ~/wabt ~/oras
+      - uses: ./ # self
         env:
           TEST_BINS: true
+      - run: ls -lR ~/binaryen ~/wabt ~/oras
