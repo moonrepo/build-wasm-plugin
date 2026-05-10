@@ -100,7 +100,7 @@ export async function findBuildablePackages(
 
 		pkg.targets.some((target) => {
 			if (target.crate_types.includes('cdylib')) {
-				core.info(`Has cdylib lib target, adding build`);
+				core.info(`Has cdylib lib target, adding package`);
 
 				buildable.input = {
 					optLevel:
@@ -231,6 +231,7 @@ async function extractChangelogEntry(
 	for (const entry of changelog.versions) {
 		if (entry.version === version && entry.body) {
 			core.setOutput('changelog-entry', entry.body.trim());
+
 			return entry.body.trim();
 		}
 	}

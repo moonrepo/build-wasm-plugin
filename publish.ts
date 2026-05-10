@@ -28,7 +28,6 @@ function getPluginRuntime(type: PluginType): PluginRuntime {
 }
 
 export async function loginToRegistry() {
-	console.log(core.getInput('publish'));
 	if (!core.getBooleanInput('publish')) {
 		return;
 	}
@@ -58,7 +57,9 @@ export async function publishPackages(baseBackages: BuildablePackage[]) {
 	core.info(`Publishing packages: ${packages.map((pkg) => pkg.package.name).join(', ')}`);
 
 	for (const pkg of packages) {
-		if (!pkg.output) continue;
+		if (!pkg.output) {
+			continue;
+		}
 
 		const meta = pkg.package;
 		const pkgName = meta.name;
@@ -66,7 +67,7 @@ export async function publishPackages(baseBackages: BuildablePackage[]) {
 
 		if (!fs.existsSync(outputFile)) {
 			throw new Error(
-				`Package ${pkgName} plugin file ${outputFile} does not exist, unable to publish!`,
+				`Package ${pkgName}'s plugin file ${outputFile} does not exist, unable to publish!`,
 			);
 		}
 
@@ -76,7 +77,7 @@ export async function publishPackages(baseBackages: BuildablePackage[]) {
 		const annotationsFile = path.join(pkg.root, 'ANNOTATIONS.json');
 		const changesFile = path.join(pkg.root, 'CHANGES.md');
 		const hasReadme = fs.existsSync(readmeFile);
-		const hasChanges = fs.existsSync(changelogFile) && changelogEntry;
+		const hasChanges = fs.existsSync(changelogFile) && !!changelogEntry;
 
 		if (hasChanges) {
 			await fs.promises.writeFile(changesFile, changelogEntry);
@@ -89,7 +90,7 @@ export async function publishPackages(baseBackages: BuildablePackage[]) {
 				'moonrepo.runtime': getPluginRuntime(pluginType),
 				'moonrepo.plugin.type': pluginType,
 				'moonrepo.plugin.format': 'wasm',
-				'org.opencontainers.image.vendor': process.env.GITHUB_REPOSITORY_OWNER,
+				'org.opencontainers.image.vendor': NAMESPACE,
 				'org.opencontainers.image.version': meta.version,
 				'org.opencontainers.image.title': meta.name,
 				// Fallthrough to undefined so that the field is removed in JSON
@@ -126,7 +127,7 @@ export async function publishPackages(baseBackages: BuildablePackage[]) {
 			annotationsFile,
 			'--artifact-type',
 			'application/wasm',
-			`${REGISTRY}/${NAMESPACE}/${meta.name}:${meta.version},latest`,
+			`${REGISTRY}/${NAMESPACE}/${pkgName}:${meta.version},latest`,
 			`${outputFile}:application/wasm`,
 		];
 

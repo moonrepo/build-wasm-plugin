@@ -24,6 +24,8 @@ jobs:
       - run: pnpm install
       - run: pnpm run build
       - run: node ./dist/index.js
+        with:
+          publish: 'true'
         env:
           TEST_AUTH: true
       - run: node ./dist/index.js && ls -lR ~/binaryen ~/wabt ~/oras
