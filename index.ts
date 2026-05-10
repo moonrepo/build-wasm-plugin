@@ -288,6 +288,12 @@ async function run() {
 	core.setOutput('published', 'false');
 	core.setOutput('prerelease', 'false');
 
+	if (process.env.TEST_AUTH) {
+		await loginToRegistry();
+
+		return;
+	}
+
 	if (process.env.TEST_BINS) {
 		await Promise.all([installWabt(), installBinaryen(), installOras()]);
 
