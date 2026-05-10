@@ -10,15 +10,10 @@ branding:
   color: 'red'
 inputs:
   publish:
-    description: 'Publish the built plugin to an OCI registry.'
+    description: 'Publish the built plugin to ghcr.io as an OCI artifact.'
     default: 'false'
-    required: false
-  # registry:
-  #   description: 'The OCI registry host.'
-  #   default: 'ghcr.io'
   namespace:
-    description: 'The OCI artifact namespace. Defaults to the current organization/user.'
-    required: false
+    description: 'The ghcr.io OCI artifact namespace. Defaults to the current organization/user.'
 outputs:
   built:
     description: 'Whether the plugins have been built or not.'
