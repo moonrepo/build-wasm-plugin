@@ -33,9 +33,7 @@ export async function installBinaryen() {
 	);
 	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'binaryen'));
 
-	core.addPath(
-		path.join(extractedDir, `binaryen-version_${BINARYEN_VERSION}-${arch}-${platform}/bin`),
-	);
+	core.addPath(path.join(extractedDir, `binaryen-version_${BINARYEN_VERSION}/bin`));
 }
 
 // https://github.com/WebAssembly/wabt
@@ -56,7 +54,7 @@ export async function installWabt() {
 	);
 	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'wabt'));
 
-	core.addPath(path.join(extractedDir, `wabt-${WABT_VERSION}-${platform}-${arch}/bin`));
+	core.addPath(path.join(extractedDir, `wabt-${WABT_VERSION}/bin`));
 }
 
 // https://github.com/oras-project/oras/releases
@@ -81,5 +79,5 @@ export async function installOras() {
 	);
 	const extractedDir = await tc.extractTar(downloadFile, path.join(os.homedir(), 'oras'));
 
-	core.addPath(path.join(extractedDir, `oras_${ORAS_VERSION}_${platform}_${arch}`));
+	core.addPath(extractedDir);
 }

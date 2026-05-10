@@ -9,6 +9,7 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import TOML from '@ltd/j-toml';
 import { installBinaryen, installWabt, installOras } from './bins';
+import { loginToRegistry, publishPackages } from './publish';
 import type { BuildablePackage, CargoMetadata, CargoTomlManifest } from './types';
 
 let TAG: string | null = null;
@@ -139,6 +140,7 @@ async function findBuildablePackages(): Promise<BuildablePackage[]> {
 
 		const manifest = TOML.parse(fs.readFileSync(pkg.manifest_path, 'utf8')) as CargoTomlManifest;
 		const buildable: BuildablePackage = {
+			root: path.dirname(pkg.manifest_path),
 			package: pkg,
 		};
 
@@ -234,6 +236,8 @@ async function buildPackages(packages: BuildablePackage[]) {
 			outputFile,
 			checksumFile,
 			checksumHash,
+			readmeFile: path.join(pkg.root, pkg.package.readme ?? 'README.md'),
+			changelogFile: path.join(pkg.root, 'CHANGELOG.md'),
 		};
 	}
 
@@ -281,6 +285,7 @@ async function run() {
 	core.setOutput('changelog-entry', '');
 	core.setOutput('tagged-project', '');
 	core.setOutput('tagged-version', '');
+	core.setOutput('published', 'false');
 	core.setOutput('prerelease', 'false');
 
 	if (process.env.TEST_BINS) {
@@ -290,6 +295,7 @@ async function run() {
 	}
 
 	try {
+		await loginToRegistry();
 		detectVersionAndProject();
 
 		const packages = await findBuildablePackages();
@@ -297,6 +303,7 @@ async function run() {
 		if (packages.length > 0) {
 			await Promise.all([installWabt(), installBinaryen(), installOras(), addRustupTarget()]);
 			await buildPackages(packages);
+			await publishPackages(packages);
 		}
 
 		await extractChangelog();

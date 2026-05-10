@@ -1,4 +1,3 @@
-
 export interface CargoPackage {
 	id: string;
 	name: string;
@@ -36,10 +35,20 @@ export interface BuildOutput {
 	outputFile: string;
 	checksumFile: string;
 	checksumHash: string;
+	readmeFile: string;
+	changelogFile: string;
+	changelogEntry?: string;
 }
 
 export interface BuildablePackage {
+	root: string;
 	package: CargoPackage;
 	input?: BuildInput;
 	output?: BuildOutput;
 }
+
+export type PluginType = 'tool' | 'toolchain' | 'extension' | 'backend';
+
+export type PluginFormat = 'wasm';
+
+export type PluginRuntime = 'moon' | 'proto';

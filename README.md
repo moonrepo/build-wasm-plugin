@@ -4,7 +4,7 @@ This action will build Rust-based [WASM plugins](https://moonrepo.dev/docs/proto
 distribution, primarily for moon and proto. It achieves this by:
 
 - Finding all buildable packages using `cargo metadata`.
-- Builds all packages using `cargo build --release --target wasm32-wasi`.
+- Builds all packages using `cargo build --release --target wasm32-wasip1`.
 - Optimizes all `.wasm` files with `wasm-opt` and `wasm-strip`.
 - Generates `.sha256` checksum files for all `.wasm` files.
 - Moves built files to a `builds` directory.
@@ -32,7 +32,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: moonrepo/setup-rust@v1
         with:
           cache: false
