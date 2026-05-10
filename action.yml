@@ -1,22 +1,29 @@
 name: 'Build WASM plugin'
 author: 'Miles Johnson'
 description:
-  'Build, optimize, and prepare WASM plugins for release. This is primarily for the moon and proto
-  projects.'
+  'Build, optimize, and publish WASM plugins. This is primarily for the moon and proto projects.'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
 branding:
   icon: 'layers'
   color: 'red'
+inputs:
+  publish:
+    description: 'Publish the built plugin to ghcr.io as an OCI artifact.'
+    default: 'false'
+  namespace:
+    description: 'The ghcr.io OCI artifact namespace. Defaults to the current organization/user.'
 outputs:
   built:
     description: 'Whether the plugins have been built or not.'
   changelog-entry:
-    description: 'The changelog entry, if it exists.'
+    description: 'The changelog entry for the affected project, if it exists.'
   tagged-project:
     description: 'The project affected by a Git tag, if applicable.'
   tagged-version:
     description: 'The extracted version from a Git tag, if applicable.'
+  published:
+    description: 'Whether the plugins were published or not.'
   prerelease:
     description: 'Whether the extracted version is a pre-release or not.'

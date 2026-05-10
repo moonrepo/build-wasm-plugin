@@ -1,3 +1,12 @@
+# 0.5.0
+
+- Added the ability to publish to ghcr.io after being built.
+- Added new inputs: `publish`, `namespace`.
+- Updated action to support Node v24.
+- Updated binaryen to v129.
+- Updated wabt to v1.0.41.
+- Switched to ESM.
+
 # 0.4.2
 
 - Added support for `wasm32-wasip1` target.

@@ -9,8 +9,27 @@ jobs:
     name: 'CI'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
       - run: npm install -g pnpm
       - run: pnpm install
       - run: pnpm run check
+  build:
+    name: 'Build'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+      - run: npm install -g pnpm
+      - run: pnpm install
+      - run: pnpm run build
+      - uses: ./ # self
+        with:
+          publish: 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEST_AUTH: true
+      - uses: ./ # self
+        env:
+          TEST_BINS: true
+      - run: ls -lR ~/binaryen ~/wabt ~/oras

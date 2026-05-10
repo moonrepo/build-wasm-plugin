@@ -2,15 +2,11 @@
   "extends": "tsconfig-moon/tsconfig.json",
   "compilerOptions": {
     "allowJs": true,
-    "module": "Node16",
-    "moduleResolution": "nodenext",
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
     "noEmit": true,
-    "verbatimModuleSyntax": false
+    "types": ["node"],
+    "verbatimModuleSyntax": false,
   },
-  "include": [
-    ".eslintrc.js",
-    "*.js",
-    "*.ts",
-    "tests/*.ts"
-  ]
+  "include": ["*.js", "*.ts", "tests/*.ts"],
 }
