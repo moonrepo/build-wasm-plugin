@@ -5,6 +5,7 @@
 - Updated action to support Node v24.
 - Updated binaryen to v129.
 - Updated wabt to v1.0.41.
+- Switched to ESM.
 
 # 0.4.2
 

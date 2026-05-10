@@ -2,6 +2,7 @@
   "name": "@moonrepo/build-wasm-plugin",
   "version": "0.5.0",
   "description": "A GitHub action to build, optimize, and publish WASM plugins.",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build ./index.ts",
@@ -18,9 +19,9 @@
   "author": "Miles Johnson",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^2.0.3",
-    "@actions/exec": "^2.0.0",
-    "@actions/tool-cache": "^3.0.1",
+    "@actions/core": "^3.0.1",
+    "@actions/exec": "^3.0.0",
+    "@actions/tool-cache": "^4.0.0",
     "@ltd/j-toml": "^1.38.0",
     "changelog-parser": "^3.0.1",
     "semver": "^7.8.0"
