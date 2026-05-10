@@ -27,6 +27,7 @@ jobs:
         with:
           publish: 'true'
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TEST_AUTH: true
       - uses: ./ # self
         env:
