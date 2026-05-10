@@ -28,6 +28,7 @@ function getPluginRuntime(type: PluginType): PluginRuntime {
 }
 
 export async function loginToRegistry() {
+	console.log(core.getInput('publish'));
 	if (!core.getBooleanInput('publish')) {
 		return;
 	}
