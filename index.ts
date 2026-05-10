@@ -66,6 +66,7 @@ async function run() {
 	core.setOutput('prerelease', 'false');
 
 	if (process.env.TEST_AUTH) {
+		await installOras();
 		await loginToRegistry();
 
 		return;
@@ -79,6 +80,7 @@ async function run() {
 
 	try {
 		await loginToRegistry();
+
 		detectVersionAndPlugin();
 
 		const packages = await findBuildablePackages(PLUGIN, PLUGIN_VERSION, TAG);
@@ -94,5 +96,4 @@ async function run() {
 	}
 }
 
-// eslint-disable-next-line unicorn/prefer-top-level-await
 void run();
