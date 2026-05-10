@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
+import { installOras } from './bins';
 import type { BuildablePackage, PluginRuntime, PluginType } from './types';
 
 const REGISTRY = 'ghcr.io'; // core.getInput('registry') || 'ghcr.io';
@@ -37,6 +38,8 @@ export async function loginToRegistry() {
 			'A `GITHUB_TOKEN` environment variable is required when publishing to a registry!',
 		);
 	}
+
+	await installOras();
 
 	exec.exec(
 		'oras',

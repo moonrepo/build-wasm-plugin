@@ -1,3 +1,7 @@
+# 0.5.1
+
+- Fixed the `oras` library not being always available.
+
 # 0.5.0
 
 - Added the ability to publish to ghcr.io after being built.

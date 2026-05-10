@@ -66,7 +66,6 @@ async function run() {
 	core.setOutput('prerelease', 'false');
 
 	if (process.env.TEST_AUTH) {
-		await installOras();
 		await loginToRegistry();
 
 		return;
@@ -86,7 +85,7 @@ async function run() {
 		const packages = await findBuildablePackages(PLUGIN, PLUGIN_VERSION, TAG);
 
 		if (packages.length > 0) {
-			await Promise.all([installWabt(), installBinaryen(), installOras(), addRustupTarget()]);
+			await Promise.all([installWabt(), installBinaryen(), addRustupTarget()]);
 
 			await buildPackages(packages);
 			await publishPackages(packages);
