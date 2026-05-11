@@ -1,3 +1,7 @@
+# 0.5.2
+
+- Rework oras annotations.
+- 
 # 0.5.1
 
 - Fixed the `oras` library not being always available.

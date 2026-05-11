@@ -110,12 +110,12 @@ export async function publishPackages(baseBackages: BuildablePackage[]) {
 		};
 
 		if (hasReadme) {
-			annotations['README.md'] = { readme: true };
+			// annotations['README.md'] = { readme: true };
 			annotations[readmeFile] = { readme: true };
 		}
 
 		if (hasChanges) {
-			annotations['CHANGES.md'] = { changelog: true };
+			// annotations['CHANGES.md'] = { changelog: true };
 			annotations[changesFile] = { changelog: true };
 		}
 
