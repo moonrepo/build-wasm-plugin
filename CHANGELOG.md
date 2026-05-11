@@ -1,3 +1,7 @@
+# 0.5.4
+
+- Fixed invalid annotation values triggering an error.
+
 # 0.5.3
 
 - Rework oras annotations (again).

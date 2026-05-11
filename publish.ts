@@ -50,6 +50,30 @@ export async function loginToRegistry() {
 	);
 }
 
+// Values must be string or oras will error:
+// https://github.com/oras-project/oras/blob/main/cmd/oras/internal/option/annotation.go#L39
+function formatAnnotation(
+	value: boolean | number | string | string[] | undefined | null,
+): string | undefined {
+	if (value === null || value === undefined) {
+		return undefined;
+	}
+
+	if (Array.isArray(value)) {
+		return value.length > 0 ? value.join(', ') : undefined;
+	}
+
+	switch (typeof value) {
+		case 'boolean':
+		case 'number':
+			return String(value);
+		case 'string':
+			return value.trim().length > 0 ? value.trim() : undefined;
+		default:
+			return undefined;
+	}
+}
+
 export async function publishPackages(baseBackages: BuildablePackage[]) {
 	const packages = baseBackages.filter((pkg) => !!pkg.output);
 
@@ -88,36 +112,33 @@ export async function publishPackages(baseBackages: BuildablePackage[]) {
 
 		// Build OCI annotations
 		// https://docs.github.com/en/packages/learn-github-packages/connecting-a-repository-to-a-package
-		const annotations: Record<string, object> = {
+		const annotations: Record<string, Record<string, string | undefined>> = {
 			$manifest: {
 				'moonrepo.runtime': getPluginRuntime(pluginType),
 				'moonrepo.plugin.type': pluginType,
 				'moonrepo.plugin.format': 'wasm',
-				'org.opencontainers.image.vendor': NAMESPACE,
-				'org.opencontainers.image.version': meta.version,
-				'org.opencontainers.image.title': meta.name,
+				'org.opencontainers.image.vendor': formatAnnotation(NAMESPACE),
+				'org.opencontainers.image.version': formatAnnotation(meta.version),
+				'org.opencontainers.image.title': formatAnnotation(meta.name),
 				// Fallthrough to undefined so that the field is removed in JSON
-				'org.opencontainers.image.description': meta.description || undefined,
-				'org.opencontainers.image.licenses': meta.license || undefined,
-				'org.opencontainers.image.source': meta.repository || undefined,
-				'org.opencontainers.image.documentation': meta.documentation || undefined,
-				'org.opencontainers.image.url': meta.homepage || meta.repository || undefined,
-				'org.opencontainers.image.authors':
-					Array.isArray(meta.authors) && meta.authors.length > 0
-						? meta.authors.join(', ')
-						: undefined,
+				'org.opencontainers.image.description': formatAnnotation(meta.description),
+				'org.opencontainers.image.licenses': formatAnnotation(meta.license),
+				'org.opencontainers.image.source': formatAnnotation(meta.repository),
+				'org.opencontainers.image.documentation': formatAnnotation(meta.documentation),
+				'org.opencontainers.image.url': formatAnnotation(meta.homepage || meta.repository),
+				'org.opencontainers.image.authors': formatAnnotation(meta.authors),
 			},
 		};
 
 		if (hasReadme) {
-			annotations['README.md'] = { readme: true };
-			// annotations[readmeFile] = { readme: true };
+			annotations['README.md'] = annotations[readmeFile] = { readme: 'true' };
 		}
 
 		if (hasChanges) {
-			annotations['CHANGES.md'] = { changelog: true };
-			// annotations[changesFile] = { changelog: true };
+			annotations['CHANGES.md'] = annotations[changesFile] = { changelog: 'true' };
 		}
+
+		console.log('Annotations:', annotations);
 
 		await fs.promises.writeFile(annotationsFile, JSON.stringify(annotations));
 
@@ -141,6 +162,8 @@ export async function publishPackages(baseBackages: BuildablePackage[]) {
 		if (hasChanges) {
 			args.push(`${changesFile}:text/markdown`);
 		}
+
+		console.log('Arguments:', args);
 
 		await exec.exec('oras', args);
 
